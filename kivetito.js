@@ -130,7 +130,7 @@ async function tick() {
   if (w === shownWindow) return;
   shownWindow = w;
   const url = new URL('./', location.href);
-  url.hash = new URLSearchParams({ c: state.topic, w, s: await sign(w) }).toString();
+  url.hash = new URLSearchParams({ c: state.topic, w, s: await sign(w), p: WINDOW_MS / 1000 }).toString();
   if (shownWindow === w) renderQr(url.href);
 }
 

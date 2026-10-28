@@ -15,6 +15,9 @@ QR-kódos jelenlétellenőrző csapatgyűlésekre. Működés, korlátok, haszn�
   a CSP bővítésével együtt kerülhet be.
 - Az aláírás és az érvényesség szabályai (`WINDOW_MS`, `SIG_LENGTH`, `TICKET_S`,
   `isFresh`) csak a `common.js`-ben élnek; a kivetítő és a telefon is onnan veszi.
+  A kivetítő a saját ablakméretét a QR-ba is beleteszi (`p`), és a telefon azzal
+  számol: a GitHub Pages 10 percig gyorsítótáraz, így frissítés után a telefon és
+  a kivetítő egy ideig eltérő verziót futtathat.
 - Az ntfy.sh kérésszám-korlátja miatt a telefonos oldal kérésszámát ne növeld
   (jelenleg 1 kérés megjegyzett névvel, 3 kérés névválasztással).
 - Felület csak magyarul. Színek, fontok, térközök: a `style.css` elején lévő

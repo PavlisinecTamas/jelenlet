@@ -1,4 +1,5 @@
-// Telefonos oldal – ide visz a kivetített QR-kód (#c=<csatorna>&w=<ablak>&s=<aláírás>).
+// Telefonos oldal – ide visz a kivetített QR-kód
+// (#c=<csatorna>&w=<ablak>&s=<aláírás>&p=<ablakméret mp-ben>).
 //
 // Két út:
 //  - gyors: ha a telefon már ismeri a nevet, egy gombnyomás = egy üzenet (kód + név);
@@ -19,6 +20,8 @@ const params = new URLSearchParams(location.hash.slice(1));
 const topic = params.get('c');
 const w = Number(params.get('w'));
 const s = params.get('s');
+// A kivetítő ablakmérete; a régi, p nélküli QR-oknál a sajátunk.
+const windowMs = Number(params.get('p')) * 1000 || WINDOW_MS;
 const id = randomHex(8);
 const lastName = storageGet(LAST_NAME_KEY);
 let scannedAt = null; // ntfy.sh idő (mp), amikor a kód beérkezett
@@ -68,7 +71,7 @@ quickSend.addEventListener('click', async () => {
   const res = await send({ w, s, name: lastName });
   quickSend.disabled = false;
   if (!res) return;
-  if (isFresh(w, res.time)) done(lastName);
+  if (isFresh(w, res.time, windowMs)) done(lastName);
   else expired();
 });
 
@@ -79,7 +82,7 @@ async function startPick() {
   setStatus(statusEl, 'Kód ellenőrzése…');
   const [res, roster] = await Promise.all([send({ w, s }), fetchRoster().catch(() => null)]);
   if (!res) return;
-  if (!isFresh(w, res.time)) return expired();
+  if (!isFresh(w, res.time, windowMs)) return expired();
   if (!roster) {
     setStatus(statusEl, 'Nem sikerült betölteni a névsort. Olvasd be újra a kódot.', 'error');
     return;

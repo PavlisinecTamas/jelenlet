@@ -11,8 +11,10 @@ const TICKET_S = 5 * 60; // beolvasás után ennyi mp van a név kiválasztásá
 // A beolvasott kód akkor érvényes, ha az ntfy.sh szerint a beküldés pillanatában
 // a kód saját ablaka vagy a szomszédos ablak volt az aktuális. A kivetítő ez
 // alapján fogad el jelentkezést, a telefon ez alapján jelez előre lejáratot.
-function isFresh(w, timeSec) {
-  const current = Math.floor((timeSec * 1000) / WINDOW_MS);
+// A telefon a kivetítő ablakméretét kapja meg (a QR-ból), hogy egy frissítés után
+// a böngészőkben ragadt eltérő verziók se csússzanak szét.
+function isFresh(w, timeSec, windowMs = WINDOW_MS) {
+  const current = Math.floor((timeSec * 1000) / windowMs);
   return w >= current - 1 && w <= current + 1;
 }
 
