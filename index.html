@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Jelenlét – BME SharkTeam</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="common.js" defer></script>
+    <script src="checkin.js" defer></script>
+  </head>
+  <body>
+    <main class="card">
+      <p class="eyebrow">BME SharkTeam</p>
+      <h1>Jelenlét</h1>
+      <p id="status" class="status" role="status">Betöltés…</p>
+      <div id="quick" class="form" hidden>
+        <button type="button" id="quick-send" class="button">Jelen vagyok: <span id="quick-name"></span></button>
+        <button type="button" id="quick-other" class="link-button">Nem én vagyok</button>
+      </div>
+      <form id="pick" class="form" hidden>
+        <label for="name">Neved</label>
+        <select id="name" required></select>
+        <button type="submit" class="button">Jelen vagyok</button>
+      </form>
+      <noscript><p class="status" data-tone="error">Az oldalhoz JavaScript szükséges.</p></noscript>
+    </main>
+  </body>
+</html>

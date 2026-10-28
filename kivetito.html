@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Jelenlét kivetítő – BME SharkTeam</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="vendor/qrcodegen.js" defer></script>
+    <script src="common.js" defer></script>
+    <script src="kivetito.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <section id="setup" class="card" hidden>
+        <p class="eyebrow">BME SharkTeam</p>
+        <h1>Jelenlét – kivetítő</h1>
+        <div id="resume" class="resume" hidden>
+          <p>Folyamatban lévő gyűlés: <strong id="resume-meeting"></strong></p>
+          <button type="button" id="resume-button" class="button">Folytatás</button>
+        </div>
+        <form id="setup-form" class="form">
+          <label for="meeting">Gyűlés neve</label>
+          <input id="meeting" required maxlength="60" />
+          <label for="roster">Névsor <span class="hint">(soronként egy név)</span></label>
+          <textarea id="roster" required rows="10"></textarea>
+          <button type="submit" class="button">Új gyűlés indítása</button>
+          <p id="setup-status" class="status" role="status"></p>
+        </form>
+        <noscript><p class="status" data-tone="error">Az oldalhoz JavaScript szükséges.</p></noscript>
+      </section>
+
+      <section id="live" class="live" hidden>
+        <h1 id="live-meeting"></h1>
+        <p class="lead">Olvasd be a telefonoddal!</p>
+        <div class="qr-frame">
+          <svg id="qr" role="img" aria-label="Jelenléti QR-kód, 15 másodpercenként frissül">
+            <rect width="100%" height="100%" />
+            <path />
+          </svg>
+        </div>
+        <div class="timer" aria-hidden="true"><div id="timer-bar" class="timer-bar"></div></div>
+        <p class="count"><strong id="count">0</strong> fő jelen</p>
+        <p id="recent" class="recent" aria-live="polite"></p>
+        <p id="connection" class="status status-on-dark" role="status"></p>
+        <p class="controls">
+          <button type="button" id="fullscreen" class="button button-ghost">Teljes képernyő</button>
+          <button type="button" id="close" class="button button-ghost">Lezárás</button>
+        </p>
+      </section>
+
+      <section id="summary" class="card card-wide" hidden>
+        <p class="eyebrow">Jelenléti ív</p>
+        <h1 id="summary-meeting"></h1>
+        <p id="summary-count"></p>
+        <p class="controls">
+          <button type="button" id="download" class="button">Letöltés (CSV)</button>
+          <button type="button" id="reopen" class="button button-secondary">Vissza a QR-kódhoz</button>
+          <button type="button" id="new" class="button button-secondary">Új gyűlés</button>
+        </p>
+        <p class="hint">Telefon nélkül érkezőket a jelölőnégyzettel lehet kézzel felvenni.</p>
+        <table>
+          <thead>
+            <tr><th scope="col">Név</th><th scope="col">Jelen</th><th scope="col">Időpont</th></tr>
+          </thead>
+          <tbody id="summary-rows"></tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>
