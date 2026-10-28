@@ -1,7 +1,7 @@
 # Jelenlét – QR-kódos jelenlétellenőrzés
 
-A BME SharkTeam csapatgyűléseire. A kivetítőn 15 másodpercenként új QR-kód
-jelenik meg. A résztvevők beolvassák, kiválasztják a nevüket, és a végén a
+A BME SharkTeam csapatgyűléseire. A kivetítőn 5 másodpercenként új QR-kód
+jelenik meg, és mindegyik csak 10 másodpercig érvényes. A résztvevők beolvassák, kiválasztják a nevüket, és a végén a
 kivetítő gépe CSV-fájlba menti, ki volt jelen és ki nem.
 
 Sima HTML/CSS/JS: nincs build, nincs npm-függőség, nincs saját szerver.
@@ -40,15 +40,16 @@ kivetítő ──névsor──▶ ntfy.sh csatorna ◀──kód + név── te
     └──── élő figyelés ─────┘   (a kivetítő ellenőriz és könyvel)
 ```
 
-- **QR-kód:** egy link az `index.html`-re, benne a csatorna neve, a 15 mp-es
+- **QR-kód:** egy link az `index.html`-re, benne a csatorna neve, az 5 mp-es
   időablak sorszáma és ezek HMAC-SHA256 aláírása. Az aláíró kulcsot a
   kivetítő minden gyűlésnél véletlenszerűen generálja, és soha nem küldi el
   sehova. Így csak a kivetítőn látott kód érvényes.
-- **Érvényesség:** a kivetítő az ntfy.sh időbélyege alapján dönt. A kód a
-  saját és a szomszédos 15 mp-es ablakban érvényes, vagyis egy továbbküldött
-  link legfeljebb kb. 30 mp-ig használható. Aki listából választ nevet, annak
-  a telefonja a kódot azonnal beküldi, és a beolvasástól számított 5 percen
-  belül érkező név is érvényes. Egy beolvasással csak egy név jelölhető.
+- **Érvényesség:** a kivetítő az ntfy.sh időbélyege alapján dönt. Egy kód a
+  megjelenésétől legfeljebb 10 mp-ig érvényes (a saját és a következő 5 mp-es
+  ablakban). A telefon a kódot a link megnyitásakor azonnal beküldi, ezzel
+  indul egy 5 perces határidő a név elküldésére. A 10 mp tehát csak a
+  beolvasásra és a link megnyitására vonatkozik, a gombnyomásra nem. Egy
+  beolvasással csak egy név jelölhető.
 - **Szándékosan nincs:** bejelentkezés, és annak kizárása, hogy valaki más
   nevében is jelentkezzen. Zárt körben használjuk, az ilyen visszaélés
   utólag ellenőrizhető.
@@ -66,7 +67,7 @@ kivetítő ──névsor──▶ ntfy.sh csatorna ◀──kód + név── te
   és véletlen nevű csatornát kitalálni nem lehet. Az ntfy.sh-n egy elküldött
   üzenet nem törölhető: a „törlés” csak egy újabb eseményt tesz mellé.
 - **Kérésszám:** az ntfy.sh IP-címenként 60 kérést enged egyszerre, utána
-  5 mp-enként egyet. Egy jelentkezés 1 kérés (megjegyzett névvel) vagy
+  5 mp-enként egyet. Egy jelentkezés 2 kérés (megjegyzett névvel) vagy
   3 kérés (névválasztással). Ha a fél csapat egy NAT-olt Wi-Fi-ről jelentkezik,
   ez elfogyhat. Ilyenkor a telefon azt kéri, hogy mobilnetről próbálja újra.
 - **Hálózatfüggés:** ha az ntfy.sh nem elérhető, a rendszer sem működik.

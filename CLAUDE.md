@@ -16,7 +16,7 @@ QR-kódos jelenlétellenőrző csapatgyűlésekre. Működés, korlátok, haszn�
 - Az aláírás és az érvényesség szabályai (`WINDOW_MS`, `SIG_LENGTH`, `TICKET_S`,
   `isFresh`) csak a `common.js`-ben élnek; a kivetítő és a telefon is onnan veszi.
 - Az ntfy.sh kérésszám-korlátja miatt a telefonos oldal kérésszámát ne növeld
-  (jelenleg 1 kérés megjegyzett névvel, 3 kérés névválasztással).
+  (jelenleg 2 kérés megjegyzett névvel, 3 kérés névválasztással).
 - Felület csak magyarul. Színek, fontok, térközök: a `style.css` elején lévő
   változókból (a SharkTeam honlap tokenjei).
 - Hozzáférhetőség: szemantikus HTML, látható fókusz, a sárga csak sötét háttéren

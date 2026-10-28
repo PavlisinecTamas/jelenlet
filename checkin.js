@@ -1,9 +1,10 @@
 // Telefonos oldal – ide visz a kivetített QR-kód (#c=<csatorna>&w=<ablak>&s=<aláírás>).
 //
-// Két út:
-//  - gyors: ha a telefon már ismeri a nevet, egy gombnyomás = egy üzenet (kód + név);
-//  - névválasztós: a kódot azonnal beküldi (ezzel indul az 5 perces határidő),
-//    letölti a névsort, és a választott nevet külön üzenetben küldi utána.
+// Betöltéskor a kódot azonnal beküldi: a kód csak pár mp-ig érvényes, a beküldéssel
+// viszont indul az 5 perces határidő, ami alatt a nevet ráérősen el lehet küldeni.
+// Két út a névhez:
+//  - gyors: ha a telefon már ismeri a nevet, egy gombnyomás;
+//  - névválasztós: letölti a névsort, és a választott nevet küldi.
 // A kód érvényességét a kivetítő dönti el; a telefon csak előre jelzi, ha lejárt.
 
 const LAST_NAME_KEY = 'jelenlet.nev';
@@ -21,6 +22,7 @@ const w = Number(params.get('w'));
 const s = params.get('s');
 const id = randomHex(8);
 const lastName = storageGet(LAST_NAME_KEY);
+let scan = null; // a kód beküldése (Promise) – betöltéskor indul
 let scannedAt = null; // ntfy.sh idő (mp), amikor a kód beérkezett
 
 // Cache: no – az ntfy.sh csak élőben továbbítja a kivetítőnek, nem tárolja, így
@@ -38,6 +40,29 @@ async function send(payload) {
     );
     return null;
   }
+}
+
+// Megvárja a kód beküldését; true, ha a kód még érvényes volt.
+async function scanned() {
+  scan ??= send({ w, s });
+  const res = await scan;
+  if (!res) {
+    scan = null; // hálózati hiba után a következő próbálkozás újra küldi
+    return false;
+  }
+  if (!isFresh(w, res.time)) {
+    expired();
+    return false;
+  }
+  scannedAt = res.time;
+  return true;
+}
+
+async function sendName(name) {
+  const res = await send({ name });
+  if (!res) return;
+  if (res.time - scannedAt <= TICKET_S) done(name);
+  else expired();
 }
 
 // A kivetítő által közzétett névsor (és gyűlésnév). Mindig az ELSŐ "roster" üzenet
@@ -65,11 +90,8 @@ function done(name) {
 
 quickSend.addEventListener('click', async () => {
   quickSend.disabled = true;
-  const res = await send({ w, s, name: lastName });
+  if (await scanned()) await sendName(lastName);
   quickSend.disabled = false;
-  if (!res) return;
-  if (isFresh(w, res.time)) done(lastName);
-  else expired();
 });
 
 document.getElementById('quick-other').addEventListener('click', startPick);
@@ -77,15 +99,13 @@ document.getElementById('quick-other').addEventListener('click', startPick);
 async function startPick() {
   quick.hidden = true;
   setStatus(statusEl, 'Kód ellenőrzése…');
-  const [res, roster] = await Promise.all([send({ w, s }), fetchRoster().catch(() => null)]);
-  if (!res) return;
-  if (!isFresh(w, res.time)) return expired();
+  const [ok, roster] = await Promise.all([scanned(), fetchRoster().catch(() => null)]);
+  if (!ok) return;
   if (!roster) {
     setStatus(statusEl, 'Nem sikerült betölteni a névsort. Olvasd be újra a kódot.', 'error');
     return;
   }
 
-  scannedAt = res.time;
   select.replaceChildren(new Option('Válaszd ki a neved…', ''));
   for (const name of roster.names) select.append(new Option(name, name, false, name === lastName));
   setStatus(statusEl, roster.meeting);
@@ -95,15 +115,11 @@ async function startPick() {
 
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const name = select.value;
   submitButton.disabled = true;
   submitButton.textContent = 'Küldés…';
-  const res = await send({ name });
+  await sendName(select.value);
   submitButton.disabled = false;
   submitButton.textContent = 'Jelen vagyok';
-  if (!res) return;
-  if (res.time - scannedAt <= TICKET_S) done(name);
-  else expired();
 });
 
 // A kód ne maradjon a címsorban, hogy frissítéskor / megosztáskor ne küldődjön újra.
@@ -112,6 +128,7 @@ history.replaceState(null, '', location.pathname + location.search);
 if (!topic || !s) {
   setStatus(statusEl, 'Olvasd be a kivetített QR-kódot a telefonod kamerájával.');
 } else if (lastName) {
+  scanned(); // a kód beküldése nem várhat a gombnyomásra
   setStatus(statusEl, '');
   document.getElementById('quick-name').textContent = lastName;
   quick.hidden = false;
