@@ -4,15 +4,13 @@
 // gyűlésenként egy véletlen nevű csatornán (topic). Lásd README.
 
 const NTFY = 'https://ntfy.sh';
-const WINDOW_MS = 5 * 1000; // ennyi időnként vált a QR-kód (érvényes: 2 ablak = 10 mp)
+const WINDOW_MS = 15 * 1000; // egy QR-kód élettartama
 const SIG_LENGTH = 16; // az aláírás hossza hex karakterben
 const TICKET_S = 5 * 60; // beolvasás után ennyi mp van a név kiválasztására
 
 // A beolvasott kód akkor érvényes, ha az ntfy.sh szerint a beküldés pillanatában
-// a kód saját ablaka vagy az azt követő volt az aktuális – így egy kód a
-// megjelenésétől legfeljebb 10 mp-ig használható. (A következő ablak is elfogadott,
-// ha a kivetítő órája egy hajszállal előrébb jár; ez a lejáratot nem tolja ki.)
-// A kivetítő ez alapján fogad el jelentkezést, a telefon ez alapján jelez előre lejáratot.
+// a kód saját ablaka vagy a szomszédos ablak volt az aktuális. A kivetítő ez
+// alapján fogad el jelentkezést, a telefon ez alapján jelez előre lejáratot.
 function isFresh(w, timeSec) {
   const current = Math.floor((timeSec * 1000) / WINDOW_MS);
   return w >= current - 1 && w <= current + 1;

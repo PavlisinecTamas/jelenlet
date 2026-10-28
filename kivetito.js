@@ -1,7 +1,7 @@
 // Kivetítő oldal. Gyűlésenként:
 //  - véletlen ntfy.sh csatornát és véletlen aláíró kulcsot generál (csak ezen a gépen él),
 //  - közzéteszi a csatornán a névsort, hogy a telefonok választhassanak belőle,
-//  - 5 mp-enként új, aláírt QR-kódot mutat (egy kód 10 mp-ig érvényes),
+//  - 15 mp-enként új, aláírt QR-kódot mutat,
 //  - hallgatja a csatornát, ellenőrzi a beérkező kódokat, és vezeti a jelenlétet,
 //  - a végén CSV-be menti, ki volt jelen és ki nem.
 // Az állapot localStorage-ben is megmarad, így egy véletlen újratöltés nem veszít adatot.
