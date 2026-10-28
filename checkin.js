@@ -23,9 +23,11 @@ const id = randomHex(8);
 const lastName = storageGet(LAST_NAME_KEY);
 let scannedAt = null; // ntfy.sh idő (mp), amikor a kód beérkezett
 
+// Cache: no – az ntfy.sh csak élőben továbbítja a kivetítőnek, nem tárolja, így
+// utólag senki nem kérheti le, ki jelentkezett.
 async function send(payload) {
   try {
-    return await publish(topic, { id, ...payload });
+    return await publish(topic, { id, ...payload }, { Cache: 'no' });
   } catch (err) {
     setStatus(
       statusEl,
@@ -38,12 +40,14 @@ async function send(payload) {
   }
 }
 
-// A kivetítő által közzétett névsor (és gyűlésnév) – a csatorna "roster" címkéjű üzenete.
+// A kivetítő által közzétett névsor (és gyűlésnév). Mindig az ELSŐ "roster" üzenet
+// számít: azzal hozza létre a kivetítő a csatornát, így amit utólag bárki más
+// küld (hamis vagy hibás névsor), az nem írhatja felül.
 async function fetchRoster() {
   const res = await fetch(`${NTFY}/${topic}/json?poll=1&since=all&tags=roster`);
-  const lines = (await res.text()).split('\n').filter(Boolean);
-  const last = lines.length ? JSON.parse(JSON.parse(lines[lines.length - 1]).message) : null;
-  return last && last.t === 'roster' ? last : null;
+  const first = (await res.text()).split('\n')[0];
+  const roster = first ? JSON.parse(JSON.parse(first).message) : null;
+  return roster && roster.t === 'roster' && Array.isArray(roster.names) ? roster : null;
 }
 
 function expired() {

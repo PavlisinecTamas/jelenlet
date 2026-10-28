@@ -21,7 +21,9 @@ Sima HTML/CSS/JS: nincs build, nincs npm-függőség, nincs saját szerver.
    megnyitható: Név | Jelen (igen/nem) | Időpont | Megjegyzés.
 
 Ha véletlenül bezárod vagy újratöltöd a kivetítőt, a *Folytatás* gombbal
-ugyanott folytatható, és a közben érkezett jelentkezések sem vesznek el.
+ugyanott folytatható. Az eddigi jelenlét megmarad, de a kiesés alatt érkező
+jelentkezések elvesznek (lásd Adatvédelem). Akit ez érint, annak nem jelenik
+meg a neve a kivetítőn, úgyhogy újra beolvassa a kódot.
 
 A telefon megjegyzi a nevet. Legközelebb elég egy gombnyomás
 („Jelen vagyok: …”), a „Nem én vagyok” gombbal pedig másik név választható.
@@ -46,22 +48,32 @@ kivetítő ──névsor──▶ ntfy.sh csatorna ◀──kód + név── te
   saját és a szomszédos 15 mp-es ablakban érvényes, vagyis egy továbbküldött
   link legfeljebb kb. 30 mp-ig használható. Aki listából választ nevet, annak
   a telefonja a kódot azonnal beküldi, és a beolvasástól számított 5 percen
-  belül érkező név is érvényes.
+  belül érkező név is érvényes. Egy beolvasással csak egy név jelölhető.
 - **Szándékosan nincs:** bejelentkezés, és annak kizárása, hogy valaki más
   nevében is jelentkezzen. Zárt körben használjuk, az ilyen visszaélés
   utólag ellenőrizhető.
 
 ### Korlátok
 
-- **Adatvédelem:** a névsor és a jelentkezések az ntfy.sh-n mennek át, és ott
-  kb. 12 óráig tárolódnak. Bárki láthatja őket, aki a csatorna nevét ismeri
-  (ez benne van a QR-ban).
+- **Adatvédelem:** a jelentkezéseket a telefon `Cache: no` fejléccel küldi.
+  Az ntfy.sh ezeket csak élőben továbbítja a kivetítőnek, nem tárolja, így
+  utólag senki nem kérheti le, ki jelentkezett. Ennek ára, hogy ha a kivetítő
+  épp nem kapcsolódik (a képernyőn hibaüzenet), az akkor érkező jelentkezés
+  elvész. A **névsor** és a gyűlés neve viszont kb. 12 óráig tárolódik, mert
+  ebből választanak a telefonok. A csatorna neve benne van a QR linkjében
+  (`#c=sharkteam-…`), és aki ismeri, ezen a címen kérheti le:
+  `https://ntfy.sh/<csatorna>/json?poll=1`. A csatornák listája nem nyilvános,
+  és véletlen nevű csatornát kitalálni nem lehet. Az ntfy.sh-n egy elküldött
+  üzenet nem törölhető: a „törlés” csak egy újabb eseményt tesz mellé.
 - **Kérésszám:** az ntfy.sh IP-címenként 60 kérést enged egyszerre, utána
   5 mp-enként egyet. Egy jelentkezés 1 kérés (megjegyzett névvel) vagy
   3 kérés (névválasztással). Ha a fél csapat egy NAT-olt Wi-Fi-ről jelentkezik,
   ez elfogyhat. Ilyenkor a telefon azt kéri, hogy mobilnetről próbálja újra.
 - **Hálózatfüggés:** ha az ntfy.sh nem elérhető, a rendszer sem működik.
   Ilyenkor marad a kézi pipálás az összesítőben.
+- **Hamis kód:** hamisított vagy lejárt kódnál a kivetítő nem rögzít semmit,
+  de a telefon nem mindig tudja ezt előre jelezni. Ellenőrizni azt lehet, hogy
+  a név megjelenik-e a kivetítőn.
 - **Névsor mérete:** a névsor legfeljebb kb. 150 név lehet (az ntfy.sh 4 KB-os
   üzenetkorlátja miatt).
 

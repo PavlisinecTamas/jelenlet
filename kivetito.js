@@ -14,8 +14,14 @@ const MAX_ROSTER_BYTES = 4000; // az ntfy.sh 4096 bájt felett már csatolmányk
 const $ = (id) => document.getElementById(id);
 const views = { setup: $('setup'), live: $('live'), summary: $('summary') };
 
-// Mentett állapot: { meeting, names, topic, key, offset, lastId, scans: {id: mp}, present: {név: {time, manual?}} }
-let state = JSON.parse(storageGet(SESSION_KEY) || 'null');
+// Mentett állapot: { meeting, names, topic, key, offset, lastId,
+//   scans: {id: mp}, claimed: {id: név}, present: {név: {time, manual?}} }
+let state = null;
+try {
+  state = JSON.parse(storageGet(SESSION_KEY));
+} catch {
+  /* sérült mentés – új gyűlést kell indítani */
+}
 let key = null;
 let source = null;
 let queue = Promise.resolve();
@@ -49,6 +55,8 @@ async function sign(w) {
 
 // Egy üzenet: { id } + kód ({ w, s }) és/vagy név ({ name }). A kód regisztrálja
 // a telefont (id), a név akkor számít, ha a telefon kódja TICKET_S-en belül érkezett.
+// Egy beolvasás egyetlen nevet vehet fel (ugyanaz a név újraküldve nem hiba).
+// A törlési (message_delete) és egyéb ntfy események nem számítanak.
 async function handle(msg) {
   if (msg.event !== 'message') return;
   state.lastId = msg.id;
@@ -59,21 +67,23 @@ async function handle(msg) {
     body = {};
   }
 
-  if (typeof body.id === 'string') {
-    if (body.s !== undefined && !(body.id in state.scans)) {
+  const id = body.id;
+  if (typeof id === 'string' && /^[0-9a-f]{16}$/.test(id)) {
+    if (body.s !== undefined && !Object.hasOwn(state.scans, id)) {
       const w = Number(body.w);
-      if (isFresh(w, msg.time) && body.s === (await sign(w))) state.scans[body.id] = msg.time;
+      if (isFresh(w, msg.time) && body.s === (await sign(w))) state.scans[id] = msg.time;
     }
-    const scannedAt = state.scans[body.id];
+    const scannedAt = state.scans[id];
     const name = body.name;
     if (
-      name &&
+      typeof name === 'string' &&
       scannedAt !== undefined &&
       msg.time - scannedAt <= TICKET_S &&
       state.names.includes(name) &&
-      !state.present[name]
+      (state.claimed[id] ?? name) === name
     ) {
-      state.present[name] = { time: msg.time };
+      state.claimed[id] = name;
+      state.present[name] ??= { time: msg.time };
     }
   }
   save();
@@ -87,8 +97,8 @@ function listen() {
     const msg = JSON.parse(event.data);
     queue = queue.then(() => handle(msg));
   };
-  // Saját újracsatlakozás az utolsó feldolgozott üzenettől, hogy a kiesés alatt
-  // érkezett jelentkezések se vesszenek el.
+  // Saját újracsatlakozás. A jelentkezéseket az ntfy.sh nem tárolja (Cache: no),
+  // így a kiesés alatt érkezők elvesznek – nekik nem jelenik meg a nevük, újra beolvassák.
   source.onerror = () => {
     source.close();
     setStatus($('connection'), 'Megszakadt a kapcsolat, újracsatlakozás…', 'error');
@@ -179,7 +189,11 @@ function renderSummary() {
 }
 
 function downloadCsv() {
-  const cell = (value) => `"${String(value).replaceAll('"', '""')}"`;
+  // Az = + - @ kezdetű cellát az Excel képletként futtatná – egy aposztróf ezt megakadályozza.
+  const cell = (value) => {
+    const text = String(value);
+    return `"${(/^[=+\-@\t\r]/.test(text) ? `'${text}` : text).replaceAll('"', '""')}"`;
+  };
   const count = Object.keys(state.present).length;
   const rows = [
     ['Gyűlés', state.meeting],
@@ -232,7 +246,7 @@ $('setup-form').addEventListener('submit', async (event) => {
     const res = await publish(topic, { t: 'roster', meeting, names }, { 'X-Tags': 'roster' });
     // Óra igazítása az ntfy.sh-hoz (a time egész mp, ezért +500 ms a kerekítés közepe).
     const offset = res.time * 1000 + 500 - (t0 + Date.now()) / 2;
-    state = { meeting, names, topic, key: randomHex(32), offset, lastId: res.id, scans: {}, present: {} };
+    state = { meeting, names, topic, key: randomHex(32), offset, lastId: res.id, scans: {}, claimed: {}, present: {} };
   } catch {
     setStatus($('setup-status'), 'Nem sikerült elérni az ntfy.sh-t. Van internet?', 'error');
     return;
